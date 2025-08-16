@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: user-admin
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/test
+    username: xxxxxx
+    password: xxxxxx
+server:
+  port: 8080
