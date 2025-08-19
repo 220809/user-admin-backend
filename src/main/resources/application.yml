@@ -3,10 +3,9 @@ spring:
     name: user-admin
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/test
+    url: xxxxxxx
     username: xxxxxx
     password: xxxxxx
-    url: xxxxxx
 server:
   port: 8080
 

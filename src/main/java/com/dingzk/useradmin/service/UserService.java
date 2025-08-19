@@ -4,6 +4,7 @@ import com.dingzk.useradmin.model.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -31,4 +32,16 @@ public interface UserService extends IService<User> {
      * @return 用户
      */
     User userLogin(String userAccount, String password, HttpServletRequest request);
+
+    /**
+     * 查询所有用户
+     * @param username 用户名
+     * @param status 用户状态
+     * @param beginDate 开始日期
+     * @param endDate 结束日期
+     * @return 用户列表
+     */
+    List<User> queryUsersByCondition(String username, Integer status, Date beginDate, Date endDate);
+
+    long deleteUserByUserId(long userId);
 }

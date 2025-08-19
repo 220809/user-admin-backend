@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -69,12 +70,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = new User();
         user.setUserAccount(userAccount);
         user.setPassword(encryptPassword);
-        boolean result = this.save(user);
-        if (!result) {
+        int result = userMapper.insert(user);
+        if (result <= 0) {
             throw new UserServiceException(UserCodeEnum.USER_REGISTRATION_FAILED);
         }
 
-        return 0;
+        return user.getUserId();
     }
 
     @Override
@@ -127,5 +128,35 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         return NonSensitiveUser;
+    }
+
+    @Override
+    public List<User> queryUsersByCondition(String username, Integer status, Date beginDate, Date endDate) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+
+        if (StringUtils.isNotBlank(username)) {
+            queryWrapper.like("username", username);
+        }
+        if (status != null) {
+            queryWrapper.eq("status", status);
+        }
+        if (beginDate != null) {
+            queryWrapper.ge("created_at", beginDate);
+        }
+        if (endDate != null) {
+            queryWrapper.le("created_at", endDate);
+        }
+
+        return userMapper.selectList(queryWrapper);
+    }
+
+    @Override
+    public long deleteUserByUserId(long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new UserServiceException(UserCodeEnum.USER_NOT_FOUND);
+        }
+
+        return userMapper.deleteById(userId);
     }
 }
