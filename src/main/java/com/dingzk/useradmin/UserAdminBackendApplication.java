@@ -1,6 +1,5 @@
 package com.dingzk.useradmin;
 
-import com.dingzk.useradmin.model.User;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
