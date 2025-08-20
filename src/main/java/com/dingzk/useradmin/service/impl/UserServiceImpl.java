@@ -2,6 +2,7 @@ package com.dingzk.useradmin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dingzk.useradmin.constant.UserConstants;
 import com.dingzk.useradmin.exception.UserServiceException;
 import com.dingzk.useradmin.exception.enums.UserCodeEnum;
 import com.dingzk.useradmin.model.User;
@@ -32,8 +33,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private static final String SALT = "password";
 
     private static final String USER_ACCOUNT_REGEX = "^[\\u4e00-\\u9fa5a-zA-Z0-9]+$";
-
-    private static final String USER_LOGIN_DATA = "userLoginData";
 
     @Override
     public long userRegister(String userAccount, String password, String checkedPassword) {
@@ -112,22 +111,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         // 用户信息脱敏
-        User NonSensitiveUser = new User();
-        NonSensitiveUser.setUserId(user.getUserId());
-        NonSensitiveUser.setUsername(user.getUsername());
-        NonSensitiveUser.setEmail(user.getEmail());
-        NonSensitiveUser.setUserAccount(user.getUserAccount());
-        NonSensitiveUser.setAvatarUrl(user.getAvatarUrl());
-        NonSensitiveUser.setGender(user.getGender());
-        NonSensitiveUser.setStatus(user.getStatus());
-        NonSensitiveUser.setCreatedAt(user.getCreatedAt());
+        User unsensitiveUser = makeUnsensitiveUser(user);
 
         if (request != null) {
             HttpSession session = request.getSession();
-            session.setAttribute(USER_LOGIN_DATA, NonSensitiveUser);
+            session.setAttribute(UserConstants.USER_LOGIN_DATA, unsensitiveUser);
         }
 
-        return NonSensitiveUser;
+        return unsensitiveUser;
     }
 
     @Override
@@ -147,7 +138,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             queryWrapper.le("created_at", endDate);
         }
 
-        return userMapper.selectList(queryWrapper);
+        // 脱敏
+        return userMapper.selectList(queryWrapper).stream().map( this::makeUnsensitiveUser).toList();
+    }
+
+    @Override
+    public List<User> queryUsers() {
+        return userMapper.selectList(null).stream().map( this::makeUnsensitiveUser).toList();
     }
 
     @Override
@@ -158,5 +155,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         return userMapper.deleteById(userId);
+    }
+
+    @Override
+    public void checkAuthority(HttpServletRequest request) {
+        // 获取当前登录用户
+        if (!hasAuthority(request)) {
+            throw new UserServiceException(UserCodeEnum.USER_UNAUTHORIZED);
+        }
+    }
+
+    private User makeUnsensitiveUser(User user) {
+        if (user == null) {
+            return null;
+        }
+        User unsensitiveUser = new User();
+        unsensitiveUser.setUserId(user.getUserId());
+        unsensitiveUser.setUsername(user.getUsername());
+        unsensitiveUser.setEmail(user.getEmail());
+        unsensitiveUser.setUserAccount(user.getUserAccount());
+        unsensitiveUser.setAvatarUrl(user.getAvatarUrl());
+        unsensitiveUser.setGender(user.getGender());
+        unsensitiveUser.setStatus(user.getStatus());
+        unsensitiveUser.setCreatedAt(user.getCreatedAt());
+        unsensitiveUser.setUserRole(user.getUserRole());
+        return unsensitiveUser;
+    }
+
+    private boolean hasAuthority(HttpServletRequest request) {
+        // 获取当前登录用户
+        User user = (User) request.getSession().getAttribute(UserConstants.USER_LOGIN_DATA);
+        return user != null && user.getUserRole() == UserConstants.ROLE_ADMIN;
     }
 }

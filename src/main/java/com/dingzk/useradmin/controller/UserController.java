@@ -40,23 +40,27 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public List<User> queryUsers(@RequestBody UserSearchRequestParam param) {
+    public List<User> queryUsers(@RequestBody UserSearchRequestParam param, HttpServletRequest request) {
+        userService.checkAuthority(request);
+
         if (param == null) {
-            return userService.list();
+            return userService.queryUsers();
         }
         String username = param.getUsername();
         Integer status = param.getStatus();
         Date beginDate = param.getBeginDate();
         Date endDate = param.getEndDate();
         if (ObjectUtils.allNull(username, status, beginDate, endDate)) {
-            return userService.list();
+            return userService.queryUsers();
         }
 
         return userService.queryUsersByCondition(username, status, beginDate, endDate);
     }
 
     @DeleteMapping("/user/{user_id}")
-    public Long deleteUserByUserId(@PathVariable("user_id") Long userId) {
+    public Long deleteUserByUserId(@PathVariable("user_id") Long userId, HttpServletRequest request) {
+        userService.checkAuthority(request);
+
         if (userId == null) {
             return null;
         }

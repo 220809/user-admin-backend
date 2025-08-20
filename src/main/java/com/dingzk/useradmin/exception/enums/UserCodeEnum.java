@@ -10,7 +10,8 @@ public enum UserCodeEnum implements BusinessCodeEnum {
     USER_ACCOUNT_PASSWORD_MISMATCH(-9, "userAccount does not match the password"),
     USER_REGISTRATION_FAILED(-10, "user registration failed"),
     USER_NOT_FOUND(-11, "user not found"),
-    USER_ALREADY_BLOCKED(-12, "user is already blocked");
+    USER_ALREADY_BLOCKED(-12, "user is already blocked"),
+    USER_UNAUTHORIZED(-13, "user is unauthorized");
 
     private final Integer code;
     private final String message;

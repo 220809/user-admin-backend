@@ -6,6 +6,8 @@ spring:
     url: xxxxxxx
     username: xxxxxx
     password: xxxxxx
+  session:
+    timeout: 1296000 # 15天
 server:
   port: 8080
 

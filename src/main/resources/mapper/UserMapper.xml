@@ -17,12 +17,13 @@
             <result property="updatedAt" column="updated_at" jdbcType="TIMESTAMP"/>
             <result property="deleted" column="deleted" jdbcType="TINYINT"/>
             <result property="lastLoginAt" column="last_login_at" jdbcType="TIMESTAMP"/>
+            <result property="userRole" column="user_rode" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         user_id,username,email,
         user_account,password,avatar_url,
         gender,status,created_at,
-        updated_at,deleted,last_login_at
+        updated_at,deleted,last_login_at,user_role
     </sql>
 </mapper>

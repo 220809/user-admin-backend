@@ -43,5 +43,13 @@ public interface UserService extends IService<User> {
      */
     List<User> queryUsersByCondition(String username, Integer status, Date beginDate, Date endDate);
 
+    /**
+     * 查询所有用户
+     * @return 用户列表
+     */
+    List<User> queryUsers();
+
     long deleteUserByUserId(long userId);
+
+    void checkAuthority(HttpServletRequest request);
 }
