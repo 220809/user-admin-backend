@@ -49,7 +49,30 @@ public interface UserService extends IService<User> {
      */
     List<User> queryUsers();
 
+    /**
+     * 根据用户id删除用户
+     * @param userId 用户id
+     * @return 删除结果
+     */
     long deleteUserByUserId(long userId);
 
+    /**
+     * 检查用户权限
+     * @param request 请求
+     */
     void checkAuthority(HttpServletRequest request);
+
+    /**
+     * 用户数据脱敏
+     * @param user 用户
+     * @return 脱敏后的用户
+     */
+    User makeUnsensitiveUser(User user);
+
+    /**
+     * 退出登录
+     * @param request HttpservletRequest
+     * @return 状态
+     */
+    int userLogout(HttpServletRequest request);
 }

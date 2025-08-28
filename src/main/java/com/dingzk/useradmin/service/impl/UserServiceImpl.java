@@ -122,6 +122,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
+    public int userLogout(HttpServletRequest request) {
+        if (request.getSession().getAttribute(UserConstants.USER_LOGIN_DATA) == null) {
+            return -1;
+        }
+        request.getSession().removeAttribute(UserConstants.USER_LOGIN_DATA);
+        return 0;
+    }
+
+    @Override
     public List<User> queryUsersByCondition(String username, Integer status, Date beginDate, Date endDate) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
 
@@ -165,7 +174,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
     }
 
-    private User makeUnsensitiveUser(User user) {
+    @Override
+    public User makeUnsensitiveUser(User user) {
         if (user == null) {
             return null;
         }

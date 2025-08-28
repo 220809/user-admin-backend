@@ -1,11 +1,14 @@
 spring:
   application:
     name: user-admin
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: xxxxxxx
-    username: xxxxxx
-    password: xxxxxx
+  # 数据库配置
+  # datasource:
+  #  driver-class-name: com.mysql.cj.jdbc.Driver
+  #  url:
+  #  username:
+  #  password:
+  profiles:
+    active: local
   session:
     timeout: 1296000 # 15天
 server:
