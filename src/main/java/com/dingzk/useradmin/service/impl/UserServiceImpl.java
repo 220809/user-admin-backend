@@ -2,9 +2,9 @@ package com.dingzk.useradmin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.dingzk.useradmin.common.ErrorCode;
 import com.dingzk.useradmin.constant.UserConstants;
-import com.dingzk.useradmin.exception.UserServiceException;
-import com.dingzk.useradmin.exception.enums.UserCodeEnum;
+import com.dingzk.useradmin.exception.BusinessException;
 import com.dingzk.useradmin.model.User;
 import com.dingzk.useradmin.service.UserService;
 import com.dingzk.useradmin.mapper.UserMapper;
@@ -38,30 +38,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public long userRegister(String userAccount, String password, String checkedPassword) {
         // 账户名，密码，确认密码不能为空
         if (StringUtils.isAnyBlank(userAccount, password, checkedPassword)) {
-            throw new UserServiceException(UserCodeEnum.PARAMETER_BLANK);
+            throw new BusinessException(ErrorCode.BAD_PARAM_ERROR, "账户名，密码，确认密码不能为空");
         }
         // 账户名不少于4位
         if (userAccount.length() < 4) {
-            throw new UserServiceException(UserCodeEnum.USER_ACCOUNT_TOO_SHORT);
+            throw new BusinessException(ErrorCode.BAD_PARAM_ERROR, "账户名少于4位");
         }
         // 密码不少于8位
         if (password.length() < 8) {
-            throw new UserServiceException(UserCodeEnum.PASSWORD_TOO_SHORT);
+            throw new BusinessException(ErrorCode.BAD_PARAM_ERROR, "密码少于8位");
         }
         // 密码和确认密码相同
         if (!password.equals(checkedPassword)) {
-            throw new UserServiceException(UserCodeEnum.PASSWORD_MISMATCH);
+            throw new BusinessException(ErrorCode.BAD_PARAM_ERROR, "密码和确认密码不同");
         }
         // 校验账户名不包含特殊字符
         if (!userAccount.matches(USER_ACCOUNT_REGEX)) {
-            throw new UserServiceException(UserCodeEnum.USER_ACCOUNT_INVALID);
+            throw new BusinessException(ErrorCode.BAD_PARAM_ERROR, "账户名包含特殊字符");
         }
         // 用户名不能重复
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_account", userAccount);
         long count = userMapper.selectCount(queryWrapper);
         if (count > 0) {
-            throw new UserServiceException(UserCodeEnum.USER_ACCOUNT_EXISTS);
+            throw new BusinessException(ErrorCode.USER_STATE_ERROR, "账户已存在");
         }
 
         // 密码加密
@@ -71,7 +71,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         user.setPassword(encryptPassword);
         int result = userMapper.insert(user);
         if (result <= 0) {
-            throw new UserServiceException(UserCodeEnum.USER_REGISTRATION_FAILED);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         }
 
         return user.getUserId();
@@ -81,19 +81,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public User userLogin(String userAccount, String password, HttpServletRequest request) {
         // 账户名，密码，确认密码不能为空
         if (StringUtils.isAnyBlank(userAccount, password)) {
-            throw new UserServiceException(UserCodeEnum.PARAMETER_BLANK);
+            throw new BusinessException(ErrorCode.BAD_PARAM_ERROR, "账户名，密码，确认密码不能为空");
         }
         // 账户名不少于4位
         if (userAccount.length() < 4) {
-            throw new UserServiceException(UserCodeEnum.USER_ACCOUNT_TOO_SHORT);
+            throw new BusinessException(ErrorCode.BAD_PARAM_ERROR, "账户名少于4位");
         }
         // 密码不少于8位
         if (password.length() < 8) {
-            throw new UserServiceException(UserCodeEnum.PASSWORD_TOO_SHORT);
+            throw new BusinessException(ErrorCode.BAD_PARAM_ERROR, "密码少于8位");
         }
         // 校验账户名不包含特殊字符
         if (!userAccount.matches(USER_ACCOUNT_REGEX)) {
-            throw new UserServiceException(UserCodeEnum.USER_ACCOUNT_INVALID);
+            throw new BusinessException(ErrorCode.BAD_PARAM_ERROR, "账户名包含特殊字符");
         }
 
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes());
@@ -103,11 +103,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         User user = userMapper.selectOne(queryWrapper);
         if (user == null) {
-            throw new UserServiceException(UserCodeEnum.USER_ACCOUNT_PASSWORD_MISMATCH);
+            throw new BusinessException(ErrorCode.USER_STATE_ERROR, "账户名密码不正确");
         }
         // 检查用户状态
         if (user.getStatus() == 2) {
-            throw new UserServiceException(UserCodeEnum.USER_ALREADY_BLOCKED);
+            throw new BusinessException(ErrorCode.USER_STATE_ERROR, "用户已封禁");
         }
 
         // 用户信息脱敏
@@ -124,7 +124,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public int userLogout(HttpServletRequest request) {
         if (request.getSession().getAttribute(UserConstants.USER_LOGIN_DATA) == null) {
-            return -1;
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
         request.getSession().removeAttribute(UserConstants.USER_LOGIN_DATA);
         return 0;
@@ -148,7 +148,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         // 脱敏
-        return userMapper.selectList(queryWrapper).stream().map( this::makeUnsensitiveUser).toList();
+        return userMapper.selectList(queryWrapper).stream().map(this::makeUnsensitiveUser).toList();
     }
 
     @Override
@@ -160,7 +160,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public long deleteUserByUserId(long userId) {
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new UserServiceException(UserCodeEnum.USER_NOT_FOUND);
+            throw new BusinessException(ErrorCode.USER_STATE_ERROR, "用户不存在");
         }
 
         return userMapper.deleteById(userId);
@@ -170,7 +170,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public void checkAuthority(HttpServletRequest request) {
         // 获取当前登录用户
         if (!hasAuthority(request)) {
-            throw new UserServiceException(UserCodeEnum.USER_UNAUTHORIZED);
+            throw new BusinessException(ErrorCode.NO_AUTHORIZATION_ERROR);
         }
     }
 

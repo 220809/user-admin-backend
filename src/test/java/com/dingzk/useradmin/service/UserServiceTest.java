@@ -1,8 +1,8 @@
 package com.dingzk.useradmin.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.dingzk.useradmin.exception.UserServiceException;
-import com.dingzk.useradmin.exception.enums.UserCodeEnum;
+import com.dingzk.useradmin.exception.BusinessException;
+import com.dingzk.useradmin.common.ErrorCode;
 import com.dingzk.useradmin.mapper.UserMapper;
 import com.dingzk.useradmin.model.User;
 import com.dingzk.useradmin.service.impl.UserServiceImpl;
@@ -70,63 +70,63 @@ public class UserServiceTest {
 
     @Test
     void testUserRegisterFailure_WhenUserAccountIsBlank() {
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                         () -> userService.userRegister("", TEST_PASSWORD, TEST_PASSWORD));
-        Assertions.assertEquals(UserCodeEnum.PARAMETER_BLANK.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.BAD_PARAM_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
     void testUserRegisterFailure_WhenPasswordIsBlank() {
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userRegister(TEST_USER_ACCOUNT1, "", TEST_PASSWORD));
-        Assertions.assertEquals(UserCodeEnum.PARAMETER_BLANK.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.BAD_PARAM_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
     void testUserRegisterFailure_WhenCheckedPasswordIsBlank() {
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userRegister(TEST_USER_ACCOUNT1, TEST_PASSWORD, ""));
-        Assertions.assertEquals(UserCodeEnum.PARAMETER_BLANK.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.BAD_PARAM_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
     void testUserRegisterFailure_WhenUserAccountLessThan4Chars() {
         String userAccount = "abc";
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userRegister(userAccount, TEST_PASSWORD, TEST_PASSWORD));
-        Assertions.assertEquals(UserCodeEnum.USER_ACCOUNT_TOO_SHORT.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.BAD_PARAM_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
     void testUserRegisterFailure_WhenPasswordLessThan8Chars() {
         String password = "1234567";
         String checkedPassword = "1234567";
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userRegister(TEST_USER_ACCOUNT1, password, checkedPassword));
-        Assertions.assertEquals(UserCodeEnum.PASSWORD_TOO_SHORT.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.BAD_PARAM_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
     void testUserRegisterFailure_WhenPasswordNotEqualToCheckedPassword() {
         String checkedPassword = "123456789";
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userRegister(TEST_USER_ACCOUNT1, TEST_PASSWORD, checkedPassword));
-        Assertions.assertEquals(UserCodeEnum.PASSWORD_MISMATCH.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.BAD_PARAM_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
     void testUserRegisterFailure_WhenUserAccountContainsSpecialChars() {
         String userAccount = "testAccount@1";
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userRegister(userAccount, TEST_PASSWORD, TEST_PASSWORD));
-        Assertions.assertEquals(UserCodeEnum.USER_ACCOUNT_INVALID.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.BAD_PARAM_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
@@ -135,10 +135,10 @@ public class UserServiceTest {
         // 模拟用户已存在
         Mockito.when(userMapper.selectCount(Mockito.any(QueryWrapper.class)))
                 .thenReturn(1L);
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userRegister(userAccount, TEST_PASSWORD, TEST_PASSWORD));
-        Assertions.assertEquals(UserCodeEnum.USER_ACCOUNT_EXISTS.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.USER_STATE_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
@@ -161,45 +161,45 @@ public class UserServiceTest {
 
     @Test
     void testUserLoginFailure_WhenUserAccountIsBlank() {
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userLogin("", TEST_PASSWORD, null));
-        Assertions.assertEquals(UserCodeEnum.PARAMETER_BLANK.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.BAD_PARAM_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
     void testUserLoginFailure_WhenPasswordIsBlank() {
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userLogin(TEST_USER_ACCOUNT1, "", null));
-        Assertions.assertEquals(UserCodeEnum.PARAMETER_BLANK.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.BAD_PARAM_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
     void testUserLoginFailure_WhenUserAccountLessThan4Chars() {
         String userAccount = "abc";
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userLogin(userAccount, TEST_PASSWORD, null));
-        Assertions.assertEquals(UserCodeEnum.USER_ACCOUNT_TOO_SHORT.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.BAD_PARAM_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
     void testUserLoginFailure_WhenPasswordLessThan8Chars() {
         String password = "1234567";
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userLogin(TEST_USER_ACCOUNT1, password, null));
-        Assertions.assertEquals(UserCodeEnum.PASSWORD_TOO_SHORT.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.BAD_PARAM_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
     void testUserLoginFailure_WhenUserAccountContainsSpecialChars() {
         String userAccount = "testAccount@1";
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userLogin(userAccount, TEST_PASSWORD, null));
-        Assertions.assertEquals(UserCodeEnum.USER_ACCOUNT_INVALID.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.BAD_PARAM_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
@@ -208,10 +208,10 @@ public class UserServiceTest {
         Mockito.when(userMapper.selectOne(Mockito.any(QueryWrapper.class)))
                 .thenReturn(null); // 模拟用户不存在
 
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userLogin(userAccount, TEST_PASSWORD, null));
-        Assertions.assertEquals(UserCodeEnum.USER_ACCOUNT_PASSWORD_MISMATCH.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.USER_STATE_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
@@ -222,10 +222,10 @@ public class UserServiceTest {
                 .thenReturn(new User() {{
                     setStatus(2);  // 模拟封禁
                 }});
-        UserServiceException userServiceException = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userLogin(userAccount, TEST_PASSWORD, null));
-        Assertions.assertEquals(UserCodeEnum.USER_ALREADY_BLOCKED.name(),
-                userServiceException.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.USER_STATE_ERROR.getCode(),
+                exception.getCode());
     }
 
     @Test
@@ -246,11 +246,11 @@ public class UserServiceTest {
                 .thenReturn(testUserList);
 
         List<User> users = userService.queryUsersByCondition(null, null, null, null);
-        Assertions.assertIterableEquals(testUserList, users);
+        Assertions.assertIterableEquals(testUserList.stream().peek(user -> user.setPassword(null)).toList(), users);
     }
 
     @Test
-    void testQueryUsers_WhenConditionLikeUsername() {
+    void testQueryUsers_WhenConditionLikeUsergetCode() {
         initTestUserList();
 
         String likeName = "User2";
@@ -259,7 +259,7 @@ public class UserServiceTest {
         Mockito.when(userMapper.selectList(Mockito.any(QueryWrapper.class)))
                 .thenReturn(result);
         List<User> users = userService.queryUsersByCondition(likeName, null, null, null);
-        Assertions.assertIterableEquals(result, users);
+        Assertions.assertIterableEquals(result.stream().peek(user -> user.setPassword(null)).toList(), users);
     }
 
     @Test
@@ -272,7 +272,7 @@ public class UserServiceTest {
                 .thenReturn(result);
 
         List<User> users = userService.queryUsersByCondition(null, 2, null, null);
-        Assertions.assertIterableEquals(result, users);
+        Assertions.assertIterableEquals(result.stream().peek(user -> user.setPassword(null)).toList(), users);
     }
 
     @Test
@@ -288,7 +288,7 @@ public class UserServiceTest {
                 userService.queryUsersByCondition(null, null,
                         new Date(2025, Calendar.AUGUST,18),
                         new Date(2025, Calendar.AUGUST,19));
-        Assertions.assertIterableEquals(result, users);
+        Assertions.assertIterableEquals(result.stream().peek(user -> user.setPassword(null)).toList(), users);
     }
 
     @Test
@@ -296,9 +296,9 @@ public class UserServiceTest {
         long userId = 4L;
         Mockito.when(userMapper.selectById(userId))
                 .thenReturn(null);
-        UserServiceException exception = Assertions.assertThrows(UserServiceException.class,
+        BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.deleteUserByUserId(userId));
-        Assertions.assertEquals(UserCodeEnum.USER_NOT_FOUND.name(), exception.getUserCodeEnum().name());
+        Assertions.assertEquals(ErrorCode.USER_STATE_ERROR.getCode(), exception.getCode());
     }
 
     @Test

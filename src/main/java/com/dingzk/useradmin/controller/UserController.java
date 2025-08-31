@@ -1,6 +1,9 @@
 package com.dingzk.useradmin.controller;
 
+import com.dingzk.useradmin.common.ErrorCode;
+import com.dingzk.useradmin.common.ResponseEntity;
 import com.dingzk.useradmin.constant.UserConstants;
+import com.dingzk.useradmin.exception.BusinessException;
 import com.dingzk.useradmin.model.User;
 import com.dingzk.useradmin.model.request.UserLoginRequestParam;
 import com.dingzk.useradmin.model.request.UserRegisterRequestParam;
@@ -21,72 +24,84 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public Long userRegister(@RequestBody UserRegisterRequestParam param) {
+    public ResponseEntity<Long> userRegister(@RequestBody UserRegisterRequestParam param) {
         if (param == null) {
-            return null;
+            throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
         String userAccount = param.getUserAccount();
         String password = param.getPassword();
         String checkedPassword = param.getCheckedPassword();
-        return userService.userRegister(userAccount, password, checkedPassword);
+        long result = userService.userRegister(userAccount, password, checkedPassword);
+        return ResponseEntity.success(result);
     }
 
     @PostMapping("/login")
-    public User userLogin(@RequestBody UserLoginRequestParam param, HttpServletRequest request) {
+    public ResponseEntity<User> userLogin(@RequestBody UserLoginRequestParam param, HttpServletRequest request) {
         if (param == null) {
-            return null;
+            throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
         String userAccount = param.getUserAccount();
         String password = param.getPassword();
-        return userService.userLogin(userAccount, password, request);
+        User user = userService.userLogin(userAccount, password, request);
+        return ResponseEntity.success(user);
     }
 
     @PostMapping("/logout")
-    public Integer userLogout(HttpServletRequest request) {
+    public ResponseEntity<Integer> userLogout(HttpServletRequest request) {
         if (request == null) {
-            return null;
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         }
-        return userService.userLogout(request);
+        int result = userService.userLogout(request);
+        return ResponseEntity.success(result);
     }
 
     @GetMapping("/list")
-    public List<User> queryUsers(@RequestBody(required = false) UserSearchRequestParam param,
+    public ResponseEntity<List<User>> queryUsers(@RequestBody(required = false) UserSearchRequestParam param,
                                  HttpServletRequest request) {
         userService.checkAuthority(request);
 
+        List<User> users;
+
         if (param == null) {
-            return userService.queryUsers();
+            users = userService.queryUsers();
+            return ResponseEntity.success(users);
         }
         String username = param.getUsername();
         Integer status = param.getStatus();
         Date beginDate = param.getBeginDate();
         Date endDate = param.getEndDate();
         if (ObjectUtils.allNull(username, status, beginDate, endDate)) {
-            return userService.queryUsers();
+            users = userService.queryUsers();
+        } else {
+            users = userService.queryUsersByCondition(username, status, beginDate, endDate);
         }
 
-        return userService.queryUsersByCondition(username, status, beginDate, endDate);
+        return ResponseEntity.success(users);
     }
 
     @DeleteMapping("/{user_id}")
-    public Long deleteUserByUserId(@PathVariable("user_id") Long userId, HttpServletRequest request) {
-        userService.checkAuthority(request);
-
+    public ResponseEntity<Long> deleteUserByUserId(@PathVariable("user_id") Long userId, HttpServletRequest request) {
         if (userId == null) {
-            return null;
+            throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
-        return userService.deleteUserByUserId(userId);
+        userService.checkAuthority(request);
+        long result = userService.deleteUserByUserId(userId);
+        if (result <= 0L) {
+            throw new BusinessException(ErrorCode.USER_STATE_ERROR, "用户不存在");
+        }
+        return ResponseEntity.success(result);
     }
 
     @GetMapping("/current")
-    public User getCurrentUser(HttpServletRequest request) {
+    public ResponseEntity<User> getCurrentUser(HttpServletRequest request) {
         User user = (User) request.getSession().getAttribute(UserConstants.USER_LOGIN_DATA);
         if (user == null) {
-            return null;
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
         long userId = user.getUserId();
         User currentUser = userService.getById(userId);
 
-        return userService.makeUnsensitiveUser(currentUser);
+        User result = userService.makeUnsensitiveUser(currentUser);
+        return ResponseEntity.success(result);
     }
 }
