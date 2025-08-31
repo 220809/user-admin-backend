@@ -69,6 +69,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = new User();
         user.setUserAccount(userAccount);
         user.setPassword(encryptPassword);
+        // 用户名默认为账户名
+        user.setUsername(userAccount);
+        // 默认头像
+        user.setAvatarUrl("https://robohash.org/example123");
         int result = userMapper.insert(user);
         if (result <= 0) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
@@ -109,6 +113,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (user.getStatus() == 2) {
             throw new BusinessException(ErrorCode.USER_STATE_ERROR, "用户已封禁");
         }
+
+        // 记录最后登录时间
+        user.setLastLoginAt(new Date());
+        userMapper.updateById(user);
 
         // 用户信息脱敏
         User unsensitiveUser = makeUnsensitiveUser(user);
