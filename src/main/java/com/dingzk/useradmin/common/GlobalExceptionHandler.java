@@ -1,10 +1,12 @@
 package com.dingzk.useradmin.common;
 
 import com.dingzk.useradmin.exception.BusinessException;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Hidden  // knife4j 500 NoSuchMethodError
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {

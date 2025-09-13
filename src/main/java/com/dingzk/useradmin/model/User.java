@@ -55,10 +55,22 @@ public class User {
     private Integer gender;
 
     /**
+     * 用户签名
+     */
+    @TableField(value = "slogan")
+    private String slogan;
+
+    /**
      * 账户状态 0-禁用 1-正常 2-锁定
      */
     @TableField(value = "status")
     private Integer status;
+
+    /**
+     * json格式 用户标签
+     */
+    @TableField(value = "tags")
+    private String tags;
 
     /**
      * 创建时间

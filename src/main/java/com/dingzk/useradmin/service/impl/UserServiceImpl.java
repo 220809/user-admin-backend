@@ -8,15 +8,20 @@ import com.dingzk.useradmin.exception.BusinessException;
 import com.dingzk.useradmin.model.User;
 import com.dingzk.useradmin.service.UserService;
 import com.dingzk.useradmin.mapper.UserMapper;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
+import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 /**
 * @author ding
@@ -182,6 +187,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
     }
 
+    private boolean hasAuthority(HttpServletRequest request) {
+        // 获取当前登录用户
+        User user = (User) request.getSession().getAttribute(UserConstants.USER_LOGIN_DATA);
+        return user != null && user.getUserRole() == UserConstants.ROLE_ADMIN;
+    }
+
     @Override
     public User makeUnsensitiveUser(User user) {
         if (user == null) {
@@ -194,15 +205,68 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         unsensitiveUser.setUserAccount(user.getUserAccount());
         unsensitiveUser.setAvatarUrl(user.getAvatarUrl());
         unsensitiveUser.setGender(user.getGender());
+        unsensitiveUser.setSlogan(user.getSlogan());
         unsensitiveUser.setStatus(user.getStatus());
         unsensitiveUser.setCreatedAt(user.getCreatedAt());
         unsensitiveUser.setUserRole(user.getUserRole());
+        unsensitiveUser.setTags(user.getTags());
         return unsensitiveUser;
     }
 
-    private boolean hasAuthority(HttpServletRequest request) {
-        // 获取当前登录用户
-        User user = (User) request.getSession().getAttribute(UserConstants.USER_LOGIN_DATA);
-        return user != null && user.getUserRole() == UserConstants.ROLE_ADMIN;
+    @Override
+    public List<User> searchUserByAndTags(List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
+        }
+
+        return searchUserByAndTags_usingPureSql(tagNameList);
+    }
+
+    /**
+     * SQL 实现标签查询
+     *
+     * @param tagNameList 标签列表
+     * @return 用户列表
+     */
+    private List<User> searchUserByAndTags_usingPureSql(List<String> tagNameList) {
+        QueryWrapper<User> query = new QueryWrapper<>();
+        for (String tagName : tagNameList) {
+            query = query.like("tags", tagName);
+        }
+        List<User> userList = userMapper.selectList(query);
+
+        return userList.stream().map(this::makeUnsensitiveUser).toList();
+    }
+
+    /**
+     * 内存 实现标签查询
+     *
+     * @param tagNameList 标签列表
+     * @return 用户列表
+     */
+    private List<User> searchUserByAndTags_usingMemory(List<String> tagNameList) {
+        QueryWrapper<User> query = new QueryWrapper<>();
+        query.like("tags", tagNameList.get(0));
+        List<User> userListBeforeFilter = userMapper.selectList(query);
+
+        if (tagNameList.size() == 1) {
+            return userListBeforeFilter.stream().map(this::makeUnsensitiveUser).toList();
+        }
+
+        Gson gson = new Gson();
+        Type tagsType = new TypeToken<Set<String>>() {}.getType();
+        List<User> userList = userListBeforeFilter.stream().filter(
+                user -> {
+                    Set<String> tagNameSet = gson.fromJson(user.getTags(), tagsType);
+                    for (int i = 1; i < tagNameList.size(); ++i) {
+                        if (!tagNameSet.contains(tagNameList.get(i))) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+        ).toList();
+
+        return userList.stream().map(this::makeUnsensitiveUser).toList();
     }
 }

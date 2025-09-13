@@ -29,7 +29,7 @@ public class UserServiceTest {
     @MockitoBean
     private UserMapper userMapper;
     @Autowired
-    private UserService userService = new UserServiceImpl();
+    private UserService userService;
 
     private static final String TEST_USER_ACCOUNT1 = "testAccount1";
     private static final String TEST_USER_ACCOUNT2 = "testAccount2";
