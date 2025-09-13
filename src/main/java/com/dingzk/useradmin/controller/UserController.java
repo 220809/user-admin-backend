@@ -12,6 +12,7 @@ import com.dingzk.useradmin.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @RestController()
 @RequestMapping("/user")
+@CrossOrigin(origins = {"http://localhost:5173"})
 public class UserController {
     @Autowired
     private UserService userService;
@@ -103,5 +105,16 @@ public class UserController {
 
         User result = userService.makeUnsensitiveUser(currentUser);
         return ResponseEntity.success(result);
+    }
+
+    @GetMapping("/search/tags")
+    public ResponseEntity<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
+        }
+
+        List<User> users = userService.searchUserByAndTags(tagNameList);
+
+        return ResponseEntity.success(users);
     }
 }

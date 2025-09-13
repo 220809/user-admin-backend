@@ -1,4 +1,5 @@
 application-local.yml
+sql/
 
 HELP.md
 target/
