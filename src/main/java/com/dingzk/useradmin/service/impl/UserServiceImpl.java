@@ -1,6 +1,7 @@
 package com.dingzk.useradmin.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dingzk.useradmin.common.ErrorCode;
 import com.dingzk.useradmin.constant.UserConstants;
@@ -19,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -189,8 +191,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     private boolean hasAuthority(HttpServletRequest request) {
         // 获取当前登录用户
-        User user = (User) request.getSession().getAttribute(UserConstants.USER_LOGIN_DATA);
-        return user != null && user.getUserRole() == UserConstants.ROLE_ADMIN;
+        User user = this.getCurrentUser(request);
+        return user.getUserRole() == UserConstants.ROLE_ADMIN;
+    }
+
+    private boolean hasAuthority(User currentUser) {
+        if (currentUser == null) {
+            throw new BusinessException(ErrorCode.BAD_PARAM_ERROR);
+        }
+        return currentUser.getUserRole() == UserConstants.ROLE_ADMIN;
     }
 
     @Override
@@ -268,5 +277,57 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         ).toList();
 
         return userList.stream().map(this::makeUnsensitiveUser).toList();
+    }
+
+    @Override
+    public int updateUser(User updatedUser, HttpServletRequest request) {
+        if (updatedUser == null) {
+            throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
+        }
+        // 校验权限，非管理员且非当前用户，不允许修改
+        Long userId = updatedUser.getUserId();
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.BAD_PARAM_ERROR);
+        }
+        // 当前登录用户
+        User currentUser = getCurrentUser(request);
+        // 获取要更新的用户
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            // 用户不存在
+            throw new BusinessException(ErrorCode.USER_STATE_ERROR, "用户不存在");
+        }
+        if (!hasAuthority(currentUser) && !currentUser.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_AUTHORIZATION_ERROR);
+        }
+
+        // 修改用户
+        int result = userMapper.updateById(updatedUser);
+        if (result <= 0) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        return result;
+    }
+
+    @Override
+    public User getCurrentUser(HttpServletRequest request) {
+        Object userObj = request.getSession().getAttribute(UserConstants.USER_LOGIN_DATA);
+        if (userObj == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        return (User) userObj;
+    }
+
+    @Override
+    public List<User> getRecommendUsers(HttpServletRequest request) {
+        User currentUser = getCurrentUser(request);
+
+        // 从前 50 条记录中，获取随机 8 条用户数据
+        QueryWrapper<User> query = new QueryWrapper<>();
+        Page<User> page = new Page<>(0, 50);
+        Page<User> userPage = userMapper.selectPage(page, query);
+        List<User> users = userPage.getRecords();
+        Collections.shuffle(users);
+        return users.stream().limit(8).toList();
     }
 }

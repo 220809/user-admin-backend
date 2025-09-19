@@ -28,7 +28,7 @@ public interface UserService extends IService<User> {
      *
      * @param userAccount 账户名
      * @param password    密码
-     * @param request
+     * @param request request
      * @return 用户
      */
     User userLogin(String userAccount, String password, HttpServletRequest request);
@@ -84,4 +84,26 @@ public interface UserService extends IService<User> {
      * @return 用户列表
      */
     List<User> searchUserByAndTags(List<String> tagNameList);
+
+    /**
+     * 更新用户
+     * @param updatedUser 更新用户数据
+     * @param request request
+     * @return result
+     */
+    int updateUser(User updatedUser, HttpServletRequest request);
+
+    /**
+     * 获取当前登录用户
+     * @param request request
+     * @return user
+     */
+    User getCurrentUser(HttpServletRequest request);
+
+    /**
+     * 获取推荐用户
+     * @param request request
+     * @return userList
+     */
+    List<User> getRecommendUsers(HttpServletRequest request);
 }

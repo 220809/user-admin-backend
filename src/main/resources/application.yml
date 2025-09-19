@@ -10,7 +10,12 @@ spring:
   profiles:
     active: local
   session:
-    timeout: 1296000 # 15天
+    timeout: 21600 # 15天
+  data:
+    redis:
+      host: your-redis-host
+      port: 6379
+      database: 0
 
 # springdoc-openapi项目配置
 springdoc:

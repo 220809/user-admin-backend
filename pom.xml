@@ -98,6 +98,20 @@
             <version>4.4.0</version>
         </dependency>
 
+        <!-- redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <version>3.5.4</version>
+        </dependency>
+
+        <!-- spring-session-redis -->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+            <version>3.5.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>

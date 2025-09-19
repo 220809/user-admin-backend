@@ -20,7 +20,7 @@ import java.util.List;
 
 @RestController()
 @RequestMapping("/user")
-@CrossOrigin(origins = {"http://localhost:5173"})
+@CrossOrigin(origins = {"http://localhost:5173"}, allowCredentials = "true")
 public class UserController {
     @Autowired
     private UserService userService;
@@ -114,6 +114,22 @@ public class UserController {
         }
 
         List<User> users = userService.searchUserByAndTags(tagNameList);
+
+        return ResponseEntity.success(users);
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<Integer> updateUser(@RequestBody User updatedUser, HttpServletRequest request) {
+        if (updatedUser == null) {
+            throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
+        }
+        int result = userService.updateUser(updatedUser, request);
+        return ResponseEntity.success(result);
+    }
+
+    @GetMapping("/recommend")
+    public ResponseEntity<List<User>> getRecommendUsers(HttpServletRequest request) {
+        List<User> users = userService.getRecommendUsers(request);
 
         return ResponseEntity.success(users);
     }
