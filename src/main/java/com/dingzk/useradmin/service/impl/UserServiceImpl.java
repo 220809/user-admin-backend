@@ -13,17 +13,20 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import java.lang.reflect.Type;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
 * @author ding
@@ -31,6 +34,7 @@ import java.util.Set;
 * @createDate 2025-08-16 20:44:00
 */
 @Service
+@Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     implements UserService {
 
@@ -40,6 +44,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private static final String SALT = "password";
 
     private static final String USER_ACCOUNT_REGEX = "^[\\u4e00-\\u9fa5a-zA-Z0-9]+$";
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public long userRegister(String userAccount, String password, String checkedPassword) {
@@ -322,12 +329,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public List<User> getRecommendUsers(HttpServletRequest request) {
         User currentUser = getCurrentUser(request);
 
-        // 从前 50 条记录中，获取随机 8 条用户数据
-        QueryWrapper<User> query = new QueryWrapper<>();
-        Page<User> page = new Page<>(0, 50);
-        Page<User> userPage = userMapper.selectPage(page, query);
+        ValueOperations<String, Object> operations = redisTemplate.opsForValue();
+        final String RECOMMEND_USERS_KEY = "bitbuddy:user:recommend:" + currentUser.getUserId();
+        List<User> cachedRecommendUsers = (List<User>) operations.get(RECOMMEND_USERS_KEY);
+        // 缓存中有数据
+        if (cachedRecommendUsers != null) {
+            return cachedRecommendUsers;
+        }
+
+        // 缓存中无数据
+        Page<User> userPage = userMapper.selectPage(Page.of(1, 10), null);
         List<User> users = userPage.getRecords();
-        Collections.shuffle(users);
-        return users.stream().limit(8).toList();
+        try {
+            operations.set(RECOMMEND_USERS_KEY, users, 60, TimeUnit.SECONDS);  // 设置 60 秒过期时间用于测试
+        } catch (Exception e) {
+            log.error("Error creating key for recommend users: ", e);
+        }
+        return users;
     }
 }

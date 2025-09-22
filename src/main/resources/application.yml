@@ -41,9 +41,9 @@ server:
     context-path: /api
 
 mybatis-plus:
-  configuration:
     # SQL 日志
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       logic-delete-field: deleted
