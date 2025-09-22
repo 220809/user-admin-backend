@@ -69,19 +69,4 @@ class UserAdminBackendApplicationTests {
         stopWatch.stop();
         System.out.println("Inserting test data costs: " + stopWatch.getTotalTimeMillis() + "ms");
     }
-
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
-    @Test
-    void testRedis() {
-        ValueOperations<String, Object> operations = redisTemplate.opsForValue();
-        operations.set("testString", "Hello Redis!", 1, TimeUnit.MINUTES);
-        operations.set("testUser", new User(), 1, TimeUnit.MINUTES);
-        operations.set("testList", List.of(new User()), 1, TimeUnit.MINUTES);
-
-        System.out.println(operations.get("testString"));
-        System.out.println(operations.get("testUser"));
-        System.out.println(operations.get("testList"));
-    }
 }
