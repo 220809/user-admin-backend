@@ -1,6 +1,6 @@
 package com.dingzk.useradmin.service;
 
-import com.dingzk.useradmin.model.User;
+import com.dingzk.useradmin.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import jakarta.servlet.http.HttpServletRequest;
 

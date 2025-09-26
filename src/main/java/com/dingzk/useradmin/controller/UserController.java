@@ -4,9 +4,9 @@ import com.dingzk.useradmin.common.ErrorCode;
 import com.dingzk.useradmin.common.ResponseEntity;
 import com.dingzk.useradmin.constant.UserConstants;
 import com.dingzk.useradmin.exception.BusinessException;
-import com.dingzk.useradmin.model.User;
-import com.dingzk.useradmin.model.request.UserLoginRequestParam;
-import com.dingzk.useradmin.model.request.UserRegisterRequestParam;
+import com.dingzk.useradmin.model.domain.User;
+import com.dingzk.useradmin.model.request.UserLoginRequest;
+import com.dingzk.useradmin.model.request.UserRegisterRequest;
 import com.dingzk.useradmin.model.search.UserSearchRequestParam;
 import com.dingzk.useradmin.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 import java.util.List;
 
-@RestController()
+@RestController
 @RequestMapping("/user")
 @CrossOrigin(origins = {"http://localhost:5173"}, allowCredentials = "true")
 public class UserController {
@@ -26,7 +26,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<Long> userRegister(@RequestBody UserRegisterRequestParam param) {
+    public ResponseEntity<Long> userRegister(@RequestBody UserRegisterRequest param) {
         if (param == null) {
             throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
@@ -38,7 +38,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<User> userLogin(@RequestBody UserLoginRequestParam param, HttpServletRequest request) {
+    public ResponseEntity<User> userLogin(@RequestBody UserLoginRequest param, HttpServletRequest request) {
         if (param == null) {
             throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
@@ -89,7 +89,7 @@ public class UserController {
         userService.checkAuthority(request);
         long result = userService.deleteUserByUserId(userId);
         if (result <= 0L) {
-            throw new BusinessException(ErrorCode.USER_STATE_ERROR, "用户不存在");
+            throw new BusinessException(ErrorCode.STATE_ERROR, "用户不存在");
         }
         return ResponseEntity.success(result);
     }

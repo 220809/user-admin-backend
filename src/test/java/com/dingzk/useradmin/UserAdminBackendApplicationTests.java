@@ -1,12 +1,10 @@
 package com.dingzk.useradmin;
 
-import com.dingzk.useradmin.model.User;
+import com.dingzk.useradmin.model.domain.User;
 import com.dingzk.useradmin.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;

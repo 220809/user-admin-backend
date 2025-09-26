@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dingzk.useradmin.common.ErrorCode;
 import com.dingzk.useradmin.constant.UserConstants;
 import com.dingzk.useradmin.exception.BusinessException;
-import com.dingzk.useradmin.model.User;
+import com.dingzk.useradmin.model.domain.User;
 import com.dingzk.useradmin.service.UserService;
 import com.dingzk.useradmin.mapper.UserMapper;
 import com.google.gson.Gson;
@@ -75,7 +75,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         queryWrapper.eq("user_account", userAccount);
         long count = userMapper.selectCount(queryWrapper);
         if (count > 0) {
-            throw new BusinessException(ErrorCode.USER_STATE_ERROR, "账户已存在");
+            throw new BusinessException(ErrorCode.STATE_ERROR, "账户已存在");
         }
 
         // 密码加密
@@ -121,11 +121,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         User user = userMapper.selectOne(queryWrapper);
         if (user == null) {
-            throw new BusinessException(ErrorCode.USER_STATE_ERROR, "账户名密码不正确");
+            throw new BusinessException(ErrorCode.STATE_ERROR, "账户名密码不正确");
         }
         // 检查用户状态
         if (user.getStatus() == 2) {
-            throw new BusinessException(ErrorCode.USER_STATE_ERROR, "用户已封禁");
+            throw new BusinessException(ErrorCode.STATE_ERROR, "用户已封禁");
         }
 
         // 记录最后登录时间
@@ -182,7 +182,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public long deleteUserByUserId(long userId) {
         User user = userMapper.selectById(userId);
         if (user == null) {
-            throw new BusinessException(ErrorCode.USER_STATE_ERROR, "用户不存在");
+            throw new BusinessException(ErrorCode.STATE_ERROR, "用户不存在");
         }
 
         return userMapper.deleteById(userId);
@@ -302,7 +302,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = userMapper.selectById(userId);
         if (user == null) {
             // 用户不存在
-            throw new BusinessException(ErrorCode.USER_STATE_ERROR, "用户不存在");
+            throw new BusinessException(ErrorCode.STATE_ERROR, "用户不存在");
         }
         if (!hasAuthority(currentUser) && !currentUser.getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.NO_AUTHORIZATION_ERROR);

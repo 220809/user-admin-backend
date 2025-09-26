@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dingzk.useradmin.mapper.GroupMapper">
+
+    <resultMap id="BaseResultMap" type="com.dingzk.useradmin.model.domain.Group">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="maxCapacity" column="max_capacity" jdbcType="INTEGER"/>
+            <result property="leaderId" column="leader_id" jdbcType="BIGINT"/>
+            <result property="accessLevel" column="access_level" jdbcType="TINYINT"/>
+            <result property="password" column="password" jdbcType="VARCHAR"/>
+            <result property="createTime" column="created_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updated_time" jdbcType="TIMESTAMP"/>
+            <result property="deleted" column="deleted" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,name,description,
+        max_capacity,leader_id,access_level,
+        password,create_time,update_time,
+        deleted
+    </sql>
+</mapper>

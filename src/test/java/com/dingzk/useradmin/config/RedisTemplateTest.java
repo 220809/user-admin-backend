@@ -1,6 +1,6 @@
 package com.dingzk.useradmin.config;
 
-import com.dingzk.useradmin.model.User;
+import com.dingzk.useradmin.model.domain.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

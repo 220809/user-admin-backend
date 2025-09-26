@@ -1,7 +1,8 @@
-package com.dingzk.useradmin.model;
+package com.dingzk.useradmin.model.domain;
 
 import com.baomidou.mybatisplus.annotation.*;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
@@ -13,6 +14,8 @@ import lombok.Data;
 @Data
 @TableName(value ="user")
 public class User implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 5483054737922280668L;
     /**
      * 用户 ID
      */

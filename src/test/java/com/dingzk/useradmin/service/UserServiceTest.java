@@ -4,8 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.dingzk.useradmin.exception.BusinessException;
 import com.dingzk.useradmin.common.ErrorCode;
 import com.dingzk.useradmin.mapper.UserMapper;
-import com.dingzk.useradmin.model.User;
-import com.dingzk.useradmin.service.impl.UserServiceImpl;
+import com.dingzk.useradmin.model.domain.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -137,7 +136,7 @@ public class UserServiceTest {
                 .thenReturn(1L);
         BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userRegister(userAccount, TEST_PASSWORD, TEST_PASSWORD));
-        Assertions.assertEquals(ErrorCode.USER_STATE_ERROR.getCode(),
+        Assertions.assertEquals(ErrorCode.STATE_ERROR.getCode(),
                 exception.getCode());
     }
 
@@ -210,7 +209,7 @@ public class UserServiceTest {
 
         BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userLogin(userAccount, TEST_PASSWORD, null));
-        Assertions.assertEquals(ErrorCode.USER_STATE_ERROR.getCode(),
+        Assertions.assertEquals(ErrorCode.STATE_ERROR.getCode(),
                 exception.getCode());
     }
 
@@ -224,7 +223,7 @@ public class UserServiceTest {
                 }});
         BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.userLogin(userAccount, TEST_PASSWORD, null));
-        Assertions.assertEquals(ErrorCode.USER_STATE_ERROR.getCode(),
+        Assertions.assertEquals(ErrorCode.STATE_ERROR.getCode(),
                 exception.getCode());
     }
 
@@ -298,7 +297,7 @@ public class UserServiceTest {
                 .thenReturn(null);
         BusinessException exception = Assertions.assertThrows(BusinessException.class,
                 () -> userService.deleteUserByUserId(userId));
-        Assertions.assertEquals(ErrorCode.USER_STATE_ERROR.getCode(), exception.getCode());
+        Assertions.assertEquals(ErrorCode.STATE_ERROR.getCode(), exception.getCode());
     }
 
     @Test

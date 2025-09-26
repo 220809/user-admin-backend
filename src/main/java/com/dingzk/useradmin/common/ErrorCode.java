@@ -10,7 +10,7 @@ public enum ErrorCode {
     BAD_PARAM_ERROR(40001, "请求参数错误"),
     NO_AUTHORIZATION_ERROR(40100, "没有权限"),
     NOT_LOGIN_ERROR(40101, "未登录"),
-    USER_STATE_ERROR(40300, "用户状态错误"),
+    STATE_ERROR(40300, "对象状态错误"),
     SYSTEM_ERROR(50000, "系统错误");
 
 

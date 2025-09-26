@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserRegisterRequestParam {
+public class UserRegisterRequest {
     private String userAccount;
     private String password;
     private String checkedPassword;

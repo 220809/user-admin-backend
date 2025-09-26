@@ -2,7 +2,7 @@ package com.dingzk.useradmin.job;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dingzk.useradmin.mapper.UserMapper;
-import com.dingzk.useradmin.model.User;
+import com.dingzk.useradmin.model.domain.User;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
