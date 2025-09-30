@@ -2,6 +2,12 @@ package com.dingzk.useradmin.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.dingzk.useradmin.model.domain.Group;
+import com.dingzk.useradmin.model.qo.GroupQo;
+import com.dingzk.useradmin.model.request.UpdateGroupRequest;
+import com.dingzk.useradmin.model.vo.GroupVo;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
 * @author ding
@@ -11,4 +17,7 @@ import com.dingzk.useradmin.model.domain.Group;
 */
 public interface GroupMapper extends BaseMapper<Group> {
 
+    List<GroupVo> listGroups(@Param("groupQo") GroupQo groupQo);
+
+    long updateGroup(@Param("request")UpdateGroupRequest request);
 }

@@ -25,16 +25,6 @@ public class UpdateGroupRequest implements Serializable {
     private String description;
 
     /**
-     * 圈子最大人数
-     */
-    private Integer maxCapacity;
-
-    /**
-     * 队长 ID
-     */
-    private Long leaderId;
-
-    /**
      * 圈子访问级别 0-公开 1-私有 2-加密
      */
     private Integer accessLevel;

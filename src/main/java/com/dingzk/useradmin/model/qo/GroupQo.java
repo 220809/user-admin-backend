@@ -17,14 +17,14 @@ public class GroupQo extends PageParam{
     private String name;
 
     /**
-     * 圈子最大人数
+     * 圈子描述
      */
-    private Integer maxCapacity;
+    private String description;
 
     /**
-     * 队长 ID
+     * 队长名称
      */
-    private Long leaderId;
+    private String leaderName;
 
     /**
      * 圈子访问级别 0-公开 1-私有 2-加密

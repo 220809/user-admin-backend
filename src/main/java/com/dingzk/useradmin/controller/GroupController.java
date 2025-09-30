@@ -9,11 +9,14 @@ import com.dingzk.useradmin.model.domain.Group;
 import com.dingzk.useradmin.model.domain.User;
 import com.dingzk.useradmin.model.qo.GroupQo;
 import com.dingzk.useradmin.model.request.CreateGroupRequest;
+import com.dingzk.useradmin.model.request.JoinGroupRequest;
 import com.dingzk.useradmin.model.request.UpdateGroupRequest;
+import com.dingzk.useradmin.model.vo.GroupVo;
 import com.dingzk.useradmin.service.GroupService;
 import com.dingzk.useradmin.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,17 +46,16 @@ public class GroupController {
     }
 
     @PostMapping("/update")
-    public ResponseEntity<Long> updateGroup(@RequestBody UpdateGroupRequest updateGroupRequest) {
+    public ResponseEntity<Long> updateGroup(@RequestBody UpdateGroupRequest updateGroupRequest, HttpServletRequest request) {
         if (updateGroupRequest == null) {
             throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
-        Group group = new Group();
-        BeanUtils.copyProperties(updateGroupRequest, group);
-        boolean updateResult = groupService.updateById(group);
+        User currentUser = userService.getCurrentUser(request);
+        boolean updateResult = groupService.updateGroup(updateGroupRequest, currentUser);
         if (!updateResult) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新队伍失败");
         }
-        return ResponseEntity.success(group.getId());
+        return ResponseEntity.success(updateGroupRequest.getId());
     }
 
     @PostMapping("/delete")
@@ -69,20 +71,17 @@ public class GroupController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<Group>> listGroups(GroupQo groupQo) {
+    public ResponseEntity<List<GroupVo>> listGroups(@ParameterObject GroupQo groupQo) {
         if (groupQo == null) {
             throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
-        Group group = new Group();
-        BeanUtils.copyProperties(groupQo, group);
-        QueryWrapper<Group> query = new QueryWrapper<>(group);
 
-        List<Group> groupList = groupService.list(query);
+        List<GroupVo> groupList = groupService.listGroups(groupQo);
         return ResponseEntity.success(groupList);
     }
 
     @GetMapping("/list/page")
-    public ResponseEntity<Page<Group>> pageListGroups(GroupQo groupQo) {
+    public ResponseEntity<Page<Group>> pageListGroups(@ParameterObject GroupQo groupQo) {
         if (groupQo == null) {
             throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
@@ -106,5 +105,17 @@ public class GroupController {
             throw new BusinessException(ErrorCode.STATE_ERROR, "圈子不存在");
         }
         return ResponseEntity.success(group);
+    }
+
+    @PostMapping("/join")
+    public ResponseEntity<Boolean> joinGroup(@ParameterObject JoinGroupRequest joinGroupRequest, HttpServletRequest request) {
+        if (joinGroupRequest == null) {
+            throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
+        }
+
+        User currentUser = userService.getCurrentUser(request);
+        boolean result = groupService.joinGroup(joinGroupRequest, currentUser);
+
+        return ResponseEntity.success(result);
     }
 }
