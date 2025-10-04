@@ -20,4 +20,8 @@ public interface GroupMapper extends BaseMapper<Group> {
     List<GroupVo> listGroups(@Param("groupQo") GroupQo groupQo);
 
     long updateGroup(@Param("request")UpdateGroupRequest request);
+
+    long updateGroupLeaderId(@Param("newLeaderId") Long newLeaderId, @Param("groupId") Long groupId);
+
+    List<GroupVo> listJoinedGroups(@Param("groupIdList") List<Long> groupIdList);
 }

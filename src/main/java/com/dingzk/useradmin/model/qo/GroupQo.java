@@ -12,6 +12,11 @@ public class GroupQo extends PageParam{
     private static final long serialVersionUID = 3892240524923733261L;
 
     /**
+     * 圈子 id
+     */
+    private Long id;
+
+    /**
      * 圈子名称
      */
     private String name;

@@ -33,12 +33,43 @@ public interface GroupService extends IService<Group> {
     List<GroupVo> listGroups(GroupQo groupQo);
 
     /**
-     * 更新队伍信息
+     * 更新圈子信息
      * @param updateGroupRequest 更新内容
      * @param loginUser 当前登录用户
      * @return 更新结果
      */
     boolean updateGroup(UpdateGroupRequest updateGroupRequest, User loginUser);
 
+    /**
+     * 加入圈子
+     * @param joinGroupRequest 请求参数
+     * @param loginUser 当前登录用户
+     * @return 加入结果
+     */
     boolean joinGroup(JoinGroupRequest joinGroupRequest, User loginUser);
+
+    /**
+     * 退出队伍
+     * @param groupId 圈子ID
+     * @param loginUser 登录用户
+     * @return 结果
+     */
+    boolean quitGroup(Long groupId, User loginUser);
+
+    /**
+     * 解散圈子
+     * @param groupId 圈子ID
+     * @param loginUser 登录用户
+     * @return 结果
+     */
+    boolean dismissGroup(Long groupId, User loginUser);
+
+    /**
+     * 获取当前用户已加入的圈子
+     * @param loginUser 登录用户
+     * @return 加入圈子信息
+     */
+    List<GroupVo> listJoinedGroups(User loginUser);
+
+    GroupVo listGroupDetails(Long groupId);
 }

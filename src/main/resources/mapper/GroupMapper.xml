@@ -25,32 +25,8 @@
         <result property="accessLevel" column="access_level" jdbcType="TINYINT"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-        <association property="leader" javaType="com.dingzk.useradmin.model.vo.GroupUserVo" column="id">
-            <id property="userId" column="user_id" jdbcType="BIGINT"/>
-            <result property="username" column="username" jdbcType="VARCHAR"/>
-            <result property="email" column="email" jdbcType="VARCHAR"/>
-            <result property="avatarUrl" column="avatar_url" jdbcType="VARCHAR"/>
-            <result property="gender" column="gender" jdbcType="TINYINT"/>
-            <result property="slogan" column="slogan" jdbcType="VARCHAR"/>
-            <result property="status" column="status" jdbcType="TINYINT"/>
-            <result property="tags" column="tags" jdbcType="VARCHAR"/>
-            <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
-            <result property="lastLoginAt" column="last_login_at" jdbcType="TIMESTAMP"/>
-            <result property="userRole" column="user_role" jdbcType="TINYINT"/>
-        </association>
-        <collection property="participants" ofType="com.dingzk.useradmin.model.vo.GroupUserVo" column="id">
-            <id property="userId" column="user_id" jdbcType="BIGINT"/>
-            <result property="username" column="username" jdbcType="VARCHAR"/>
-            <result property="email" column="email" jdbcType="VARCHAR"/>
-            <result property="avatarUrl" column="avatar_url" jdbcType="VARCHAR"/>
-            <result property="gender" column="gender" jdbcType="TINYINT"/>
-            <result property="slogan" column="slogan" jdbcType="VARCHAR"/>
-            <result property="status" column="status" jdbcType="TINYINT"/>
-            <result property="tags" column="tags" jdbcType="VARCHAR"/>
-            <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
-            <result property="lastLoginAt" column="last_login_at" jdbcType="TIMESTAMP"/>
-            <result property="userRole" column="user_role" jdbcType="TINYINT"/>
-        </collection>
+        <association property="leader" column="leader_id" select="com.dingzk.useradmin.mapper.UserMapper.selectByUserId" />
+        <collection property="participants" column="id" resultMap="com.dingzk.useradmin.mapper.UserMapper.GroupUserResult" />
     </resultMap>
 
     <select id="listGroups" resultMap="ListGroupResult" parameterType="com.dingzk.useradmin.model.qo.GroupQo">
@@ -61,6 +37,9 @@
         LEFT JOIN user_group AS ug ON g.id = ug.group_id
         LEFT JOIN user AS u ON ug.user_id = u.user_id
         <where>
+            <if test="groupQo.id != null">
+                AND g.id = #{groupQo.id}
+            </if>
             <if test="groupQo.name != null and groupQo.name.length() > 0">
                 AND g.name LIKE #{groupQo.name}
             </if>
@@ -74,6 +53,7 @@
             <if test="groupQo.accessLevel != null">
                 AND g.access_level = #{groupQo.accessLevel}
             </if>
+            AND ug.deleted = 0
         </where>
     </select>
 
@@ -95,6 +75,26 @@
         </set>
         WHERE id = #{request.id}
     </update>
+
+    <update id="updateGroupLeaderId">
+        UPDATE `group`
+        SET leader_id = #{newLeaderId}
+        WHERE id = #{groupId}
+    </update>
+    
+    <select id="listJoinedGroups" parameterType="long" resultMap="ListGroupResult">
+        SELECT g.id, g.name, g.description, g.max_capacity, g.leader_id, g.access_level, g.create_time, g.update_time,
+               u.user_id, u.username, u.email, u.avatar_url, u.gender, u.slogan, u.status, u.tags, u.created_at,
+               u.last_login_at, u.user_role
+        FROM `group` AS g
+                 LEFT JOIN user_group AS ug ON g.id = ug.group_id
+                 LEFT JOIN user AS u ON ug.user_id = u.user_id
+        WHERE g.id IN
+            <foreach collection="groupIdList" item="groupId" open="(" close=")" separator=",">
+                #{groupId}
+            </foreach>
+        AND ug.deleted = 0
+    </select>
 
     <sql id="Base_Column_List">
         id,name,description,

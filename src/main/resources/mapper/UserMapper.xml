@@ -22,6 +22,27 @@
             <result property="userRole" column="user_role" jdbcType="TINYINT"/>
     </resultMap>
 
+    <resultMap id="GroupUserResult" type="com.dingzk.useradmin.model.vo.GroupUserVo">
+        <id property="userId" column="user_id" jdbcType="BIGINT"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="avatarUrl" column="avatar_url" jdbcType="VARCHAR"/>
+        <result property="gender" column="gender" jdbcType="TINYINT"/>
+        <result property="slogan" column="slogan" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="TINYINT"/>
+        <result property="tags" column="tags" jdbcType="VARCHAR"/>
+        <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
+        <result property="lastLoginAt" column="last_login_at" jdbcType="TIMESTAMP"/>
+        <result property="userRole" column="user_role" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <select id="selectByUserId" resultMap="GroupUserResult">
+        SELECT user_id, username, email, avatar_url, gender, slogan, status, tags, created_at,
+               last_login_at, user_role
+        FROM user
+        WHERE user_id = #{userId}
+    </select>
+
     <sql id="Base_Column_List">
         user_id,username,email,
         user_account,password,avatar_url,

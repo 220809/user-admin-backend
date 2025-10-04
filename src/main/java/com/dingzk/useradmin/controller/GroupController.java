@@ -96,11 +96,11 @@ public class GroupController {
     }
 
     @GetMapping("/details")
-    public ResponseEntity<Group> descGroup(Long groupId) {
+    public ResponseEntity<GroupVo> descGroup(Long groupId, HttpServletRequest request) {
         if (groupId == null) {
             throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
-        Group group = groupService.getById(groupId);
+        GroupVo group = groupService.listGroupDetails(groupId);
         if (group == null) {
             throw new BusinessException(ErrorCode.STATE_ERROR, "圈子不存在");
         }
@@ -117,5 +117,33 @@ public class GroupController {
         boolean result = groupService.joinGroup(joinGroupRequest, currentUser);
 
         return ResponseEntity.success(result);
+    }
+
+    @PostMapping("/quit")
+    public ResponseEntity<Boolean> quitGroup(Long groupId, HttpServletRequest request) {
+        if (groupId == null) {
+            throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
+        }
+        User currentUser = userService.getCurrentUser(request);
+        boolean result = groupService.quitGroup(groupId, currentUser);
+        return ResponseEntity.success(result);
+    }
+
+    @PostMapping("/dismiss")
+    public ResponseEntity<Boolean> dismissGroup(Long groupId, HttpServletRequest request) {
+        if (groupId == null) {
+            throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
+        }
+        User currentUser = userService.getCurrentUser(request);
+        boolean result = groupService.dismissGroup(groupId, currentUser);
+        return ResponseEntity.success(result);
+    }
+
+    @GetMapping("/joined")
+    public ResponseEntity<List<GroupVo>> listJoinedGroups(HttpServletRequest request) {
+        User currentUser = userService.getCurrentUser(request);
+
+        List<GroupVo> groupList = groupService.listJoinedGroups(currentUser);
+        return ResponseEntity.success(groupList);
     }
 }
