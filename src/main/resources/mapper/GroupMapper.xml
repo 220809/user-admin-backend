@@ -46,6 +46,9 @@
             <if test="groupQo.description != null and groupQo.description.length() > 0">
                 AND g.description LIKE #{groupQo.description}
             </if>
+            <if test="groupQo.keyword != null and groupQo.keyword.length() > 0">
+                AND (g.name LIKE #{groupQo.keyword} OR g.description LIKE #{groupQo.keyword})
+            </if>
             <if test="groupQo.leaderName != null and groupQo.leaderName.length() > 0">
                 AND g.leader_id =
                     (SELECT user_id FROM user WHERE username = #{groupQo.leaderName})
@@ -53,7 +56,6 @@
             <if test="groupQo.accessLevel != null">
                 AND g.access_level = #{groupQo.accessLevel}
             </if>
-            AND ug.deleted = 0
         </where>
     </select>
 
@@ -93,7 +95,6 @@
             <foreach collection="groupIdList" item="groupId" open="(" close=")" separator=",">
                 #{groupId}
             </foreach>
-        AND ug.deleted = 0
     </select>
 
     <sql id="Base_Column_List">

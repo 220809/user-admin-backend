@@ -108,7 +108,8 @@ public class GroupController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<Boolean> joinGroup(@ParameterObject JoinGroupRequest joinGroupRequest, HttpServletRequest request) {
+    public ResponseEntity<Boolean> joinGroup(@ParameterObject @RequestBody JoinGroupRequest joinGroupRequest,
+                                             HttpServletRequest request) {
         if (joinGroupRequest == null) {
             throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
@@ -145,5 +146,15 @@ public class GroupController {
 
         List<GroupVo> groupList = groupService.listJoinedGroups(currentUser);
         return ResponseEntity.success(groupList);
+    }
+
+    @GetMapping("/userIds")
+    public ResponseEntity<List<Long>> listGroupUsers(Long groupId) {
+        if (groupId == null) {
+            throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
+        }
+
+        List<Long> groupUserIds = groupService.listGroupUserIds(groupId);
+        return ResponseEntity.success(groupUserIds);
     }
 }

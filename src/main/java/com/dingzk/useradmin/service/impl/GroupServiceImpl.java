@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
 * @author ding
@@ -140,19 +141,28 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group>
         if (groupQo == null) {
             throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
+        final String name = groupQo.getName();
+        final String description = groupQo.getDescription();
+        final String keyword = groupQo.getKeyword();
+        final Integer accessLevelValue = groupQo.getAccessLevel();
         // 访问级别校验
-        // 没有传入 accessLevel，按搜索公开圈子处理
-        groupQo.setAccessLevel(Optional.ofNullable(groupQo.getAccessLevel()).orElse(GroupAccessLevel.PUBLIC.getValue()));
-        GroupAccessLevel accessLevel = GroupAccessLevel.getAccessLevel(groupQo.getAccessLevel());
-        if (accessLevel == null) {
+        // 没有传入 accessLevel，搜索全部
+        GroupAccessLevel accessLevel = GroupAccessLevel.getAccessLevel(accessLevelValue);
+        if (accessLevelValue != null && accessLevel == null) {
             throw new BusinessException(ErrorCode.BAD_PARAM_ERROR);
         }
+        // todo 如何避免未传递参数时的全量搜索
 
-        if (StringUtils.isNotBlank(groupQo.getName())) {
-            groupQo.setName(SqlUtils.fullFuzzyValue(groupQo.getName()));
+        if (StringUtils.isNotBlank(name)) {
+            groupQo.setName(SqlUtils.fullFuzzyValue(name));
         }
-        if (StringUtils.isNotBlank(groupQo.getDescription())) {
-            groupQo.setDescription(SqlUtils.fullFuzzyValue(groupQo.getDescription()));
+
+        if (StringUtils.isNotBlank(description)) {
+            groupQo.setDescription(SqlUtils.fullFuzzyValue(description));
+        }
+
+        if (StringUtils.isNotBlank(keyword)) {
+            groupQo.setKeyword(SqlUtils.fullFuzzyValue(keyword));
         }
 
         return groupMapper.listGroups(groupQo);
@@ -387,5 +397,22 @@ public class GroupServiceImpl extends ServiceImpl<GroupMapper, Group>
         }
 
         return groupList.get(0);
+    }
+
+    @Override
+    public List<Long> listGroupUserIds(Long groupId) {
+        Group group = validateAndRetrievedByGroupId(groupId);
+        QueryWrapper<UserGroup> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("group_id", group.getId());
+        List<UserGroup> userGroupList = userGroupService.list(queryWrapper);
+        if (CollectionUtils.isEmpty(userGroupList)) {
+            return new ArrayList<>();
+        }
+
+        return new ArrayList<>(
+                userGroupList.stream()
+                        .collect(Collectors.groupingBy(UserGroup::getUserId))
+                        .keySet()
+        );
     }
 }

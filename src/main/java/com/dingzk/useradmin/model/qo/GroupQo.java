@@ -27,6 +27,11 @@ public class GroupQo extends PageParam{
     private String description;
 
     /**
+     * 关键词
+     */
+    private String keyword;
+
+    /**
      * 队长名称
      */
     private String leaderName;

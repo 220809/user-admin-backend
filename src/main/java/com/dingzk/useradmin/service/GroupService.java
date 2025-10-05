@@ -71,5 +71,12 @@ public interface GroupService extends IService<Group> {
      */
     List<GroupVo> listJoinedGroups(User loginUser);
 
+    /**
+     * 获取圈子详情
+     * @param groupId 圈子 ID
+     * @return 圈子详情
+     */
     GroupVo listGroupDetails(Long groupId);
+
+    List<Long> listGroupUserIds(Long groupId);
 }
