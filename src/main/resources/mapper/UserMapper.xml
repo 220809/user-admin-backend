@@ -22,7 +22,7 @@
             <result property="userRole" column="user_role" jdbcType="TINYINT"/>
     </resultMap>
 
-    <resultMap id="GroupUserResult" type="com.dingzk.useradmin.model.vo.GroupUserVo">
+    <resultMap id="GroupUserResult" type="com.dingzk.useradmin.model.vo.UserVo">
         <id property="userId" column="user_id" jdbcType="BIGINT"/>
         <result property="username" column="username" jdbcType="VARCHAR"/>
         <result property="email" column="email" jdbcType="VARCHAR"/>

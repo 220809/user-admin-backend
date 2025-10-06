@@ -6,15 +6,17 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.dingzk.useradmin.common.ErrorCode;
 import com.dingzk.useradmin.constant.UserConstants;
 import com.dingzk.useradmin.exception.BusinessException;
-import com.dingzk.useradmin.model.domain.User;
-import com.dingzk.useradmin.service.UserService;
 import com.dingzk.useradmin.mapper.UserMapper;
+import com.dingzk.useradmin.model.domain.User;
+import com.dingzk.useradmin.model.vo.UserVo;
+import com.dingzk.useradmin.service.UserService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -23,6 +25,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -132,15 +135,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         user.setLastLoginAt(new Date());
         userMapper.updateById(user);
 
-        // 用户信息脱敏
-        User unsensitiveUser = makeUnsensitiveUser(user);
-
         if (request != null) {
+            // 脱敏
+            User nonSensitiveUser = makeNonSensitive(user);
             HttpSession session = request.getSession();
-            session.setAttribute(UserConstants.USER_LOGIN_DATA, unsensitiveUser);
+            session.setAttribute(UserConstants.USER_LOGIN_DATA, nonSensitiveUser);
         }
 
-        return unsensitiveUser;
+        return user;
+    }
+
+    private User makeNonSensitive(User user) {
+        User nonSensitiveUser = new User();
+        BeanUtils.copyProperties(user, nonSensitiveUser);
+        nonSensitiveUser.setPassword(null);
+        return nonSensitiveUser;
     }
 
     @Override
@@ -170,12 +179,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         // 脱敏
-        return userMapper.selectList(queryWrapper).stream().map(this::makeUnsensitiveUser).toList();
+        return userMapper.selectList(queryWrapper);
     }
 
     @Override
     public List<User> queryUsers() {
-        return userMapper.selectList(null).stream().map( this::makeUnsensitiveUser).toList();
+        return userMapper.selectList(null);
     }
 
     @Override
@@ -210,23 +219,32 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public User makeUnsensitiveUser(User user) {
+    public UserVo convertToUserVo(User user) {
         if (user == null) {
             return null;
         }
-        User unsensitiveUser = new User();
-        unsensitiveUser.setUserId(user.getUserId());
-        unsensitiveUser.setUsername(user.getUsername());
-        unsensitiveUser.setEmail(user.getEmail());
-        unsensitiveUser.setUserAccount(user.getUserAccount());
-        unsensitiveUser.setAvatarUrl(user.getAvatarUrl());
-        unsensitiveUser.setGender(user.getGender());
-        unsensitiveUser.setSlogan(user.getSlogan());
-        unsensitiveUser.setStatus(user.getStatus());
-        unsensitiveUser.setCreatedAt(user.getCreatedAt());
-        unsensitiveUser.setUserRole(user.getUserRole());
-        unsensitiveUser.setTags(user.getTags());
-        return unsensitiveUser;
+        UserVo userVo = new UserVo();
+        userVo.setUserId(user.getUserId());
+        userVo.setUsername(user.getUsername());
+        userVo.setEmail(user.getEmail());
+        userVo.setUserAccount(user.getUserAccount());
+        userVo.setAvatarUrl(user.getAvatarUrl());
+        userVo.setGender(user.getGender());
+        userVo.setSlogan(user.getSlogan());
+        userVo.setStatus(user.getStatus());
+        userVo.setCreatedAt(user.getCreatedAt());
+        userVo.setUserRole(user.getUserRole());
+        userVo.setTags(user.getTags());
+        return userVo;
+    }
+
+    @Override
+    public List<UserVo> convertToUserVoList(List<User> users) {
+        if (CollectionUtils.isEmpty(users)) {
+            return new ArrayList<>();
+        }
+
+        return users.stream().map(this::convertToUserVo).toList();
     }
 
     @Override
@@ -251,7 +269,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         List<User> userList = userMapper.selectList(query);
 
-        return userList.stream().map(this::makeUnsensitiveUser).toList();
+        return userList;
     }
 
     /**
@@ -266,7 +284,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         List<User> userListBeforeFilter = userMapper.selectList(query);
 
         if (tagNameList.size() == 1) {
-            return userListBeforeFilter.stream().map(this::makeUnsensitiveUser).toList();
+            return userListBeforeFilter;
         }
 
         Gson gson = new Gson();
@@ -283,7 +301,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 }
         ).toList();
 
-        return userList.stream().map(this::makeUnsensitiveUser).toList();
+        return userList;
     }
 
     @Override
@@ -330,8 +348,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User currentUser = getCurrentUser(request);
 
         ValueOperations<String, Object> operations = redisTemplate.opsForValue();
-        final String RECOMMEND_USERS_KEY = "bitbuddy:user:recommend:" + currentUser.getUserId();
-        List<User> cachedRecommendUsers = (List<User>) operations.get(RECOMMEND_USERS_KEY);
+        final String recommendUsersKey = "bitbuddy:user:recommend:" + currentUser.getUserId();
+        List<User> cachedRecommendUsers = (List<User>) operations.get(recommendUsersKey);
         // 缓存中有数据
         if (cachedRecommendUsers != null) {
             return cachedRecommendUsers;
@@ -340,11 +358,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 缓存中无数据
         Page<User> userPage = userMapper.selectPage(Page.of(1, 10), null);
         List<User> users = userPage.getRecords();
+        // 脱敏
+        List<User> nonSensitiveUsers = users.stream()
+                .map(this::makeNonSensitive)
+                .toList();
+
         try {
-            operations.set(RECOMMEND_USERS_KEY, users, 60, TimeUnit.SECONDS);  // 设置 60 秒过期时间用于测试
+            operations.set(recommendUsersKey, nonSensitiveUsers, 60, TimeUnit.SECONDS);  // 设置 60 秒过期时间用于测试
         } catch (Exception e) {
             log.error("Error creating key for recommend users: ", e);
         }
-        return users;
+        return nonSensitiveUsers;
     }
 }

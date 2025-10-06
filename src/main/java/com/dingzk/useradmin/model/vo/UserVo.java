@@ -10,7 +10,7 @@ import java.util.Date;
  * 圈子用户 VO
  */
 @Data
-public class GroupUserVo implements Serializable {
+public class UserVo implements Serializable {
     @Serial
     private static final long serialVersionUID = 6422568407131982701L;
 
@@ -18,6 +18,11 @@ public class GroupUserVo implements Serializable {
      * 用户 ID
      */
     private Long userId;
+
+    /**
+     * 用户账户
+     */
+    private String userAccount;
 
     /**
      * 用户名
@@ -67,5 +72,5 @@ public class GroupUserVo implements Serializable {
     /**
      * 用户角色 0-普通用户 1-管理员
      */
-    Integer userRole;
+    private Integer userRole;
 }

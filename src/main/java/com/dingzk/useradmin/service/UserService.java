@@ -2,6 +2,7 @@ package com.dingzk.useradmin.service;
 
 import com.dingzk.useradmin.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dingzk.useradmin.model.vo.UserVo;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Date;
@@ -63,11 +64,18 @@ public interface UserService extends IService<User> {
     void checkAuthority(HttpServletRequest request);
 
     /**
-     * 用户数据脱敏
+     * 转换VO
      * @param user 用户
-     * @return 脱敏后的用户
+     * @return 用户VO
      */
-    User makeUnsensitiveUser(User user);
+    UserVo convertToUserVo(User user);
+
+    /**
+     * 转换VO list
+     * @param users 用户
+     * @return 用户VO
+     */
+    List<UserVo> convertToUserVoList(List<User> users);
 
     /**
      * 退出登录

@@ -8,6 +8,7 @@ import com.dingzk.useradmin.model.domain.User;
 import com.dingzk.useradmin.model.request.UserLoginRequest;
 import com.dingzk.useradmin.model.request.UserRegisterRequest;
 import com.dingzk.useradmin.model.search.UserSearchRequestParam;
+import com.dingzk.useradmin.model.vo.UserVo;
 import com.dingzk.useradmin.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.ObjectUtils;
@@ -38,14 +39,14 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<User> userLogin(@RequestBody UserLoginRequest param, HttpServletRequest request) {
+    public ResponseEntity<UserVo> userLogin(@RequestBody UserLoginRequest param, HttpServletRequest request) {
         if (param == null) {
             throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
         String userAccount = param.getUserAccount();
         String password = param.getPassword();
         User user = userService.userLogin(userAccount, password, request);
-        return ResponseEntity.success(user);
+        return ResponseEntity.success(userService.convertToUserVo(user));
     }
 
     @PostMapping("/logout")
@@ -58,7 +59,7 @@ public class UserController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<User>> queryUsers(@RequestBody(required = false) UserSearchRequestParam param,
+    public ResponseEntity<List<UserVo>> queryUsers(@RequestBody(required = false) UserSearchRequestParam param,
                                  HttpServletRequest request) {
         userService.checkAuthority(request);
 
@@ -66,19 +67,18 @@ public class UserController {
 
         if (param == null) {
             users = userService.queryUsers();
-            return ResponseEntity.success(users);
-        }
-        String username = param.getUsername();
-        Integer status = param.getStatus();
-        Date beginDate = param.getBeginDate();
-        Date endDate = param.getEndDate();
-        if (ObjectUtils.allNull(username, status, beginDate, endDate)) {
-            users = userService.queryUsers();
         } else {
-            users = userService.queryUsersByCondition(username, status, beginDate, endDate);
+            String username = param.getUsername();
+            Integer status = param.getStatus();
+            Date beginDate = param.getBeginDate();
+            Date endDate = param.getEndDate();
+            if (ObjectUtils.allNull(username, status, beginDate, endDate)) {
+                users = userService.queryUsers();
+            } else {
+                users = userService.queryUsersByCondition(username, status, beginDate, endDate);
+            }
         }
-
-        return ResponseEntity.success(users);
+        return ResponseEntity.success(userService.convertToUserVoList(users));
     }
 
     @DeleteMapping("/{user_id}")
@@ -95,7 +95,7 @@ public class UserController {
     }
 
     @GetMapping("/current")
-    public ResponseEntity<User> getCurrentUser(HttpServletRequest request) {
+    public ResponseEntity<UserVo> getCurrentUser(HttpServletRequest request) {
         User user = (User) request.getSession().getAttribute(UserConstants.USER_LOGIN_DATA);
         if (user == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
@@ -103,19 +103,19 @@ public class UserController {
         long userId = user.getUserId();
         User currentUser = userService.getById(userId);
 
-        User result = userService.makeUnsensitiveUser(currentUser);
+        UserVo result = userService.convertToUserVo(currentUser);
         return ResponseEntity.success(result);
     }
 
     @GetMapping("/search/tags")
-    public ResponseEntity<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList) {
+    public ResponseEntity<List<UserVo>> searchUsersByTags(@RequestParam List<String> tagNameList) {
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
 
         List<User> users = userService.searchUserByAndTags(tagNameList);
 
-        return ResponseEntity.success(users);
+        return ResponseEntity.success(userService.convertToUserVoList(users));
     }
 
     @PostMapping("/update")
@@ -128,9 +128,9 @@ public class UserController {
     }
 
     @GetMapping("/recommend")
-    public ResponseEntity<List<User>> getRecommendUsers(HttpServletRequest request) {
+    public ResponseEntity<List<UserVo>> getRecommendUsers(HttpServletRequest request) {
         List<User> users = userService.getRecommendUsers(request);
 
-        return ResponseEntity.success(users);
+        return ResponseEntity.success(userService.convertToUserVoList(users));
     }
 }

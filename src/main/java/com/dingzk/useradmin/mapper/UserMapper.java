@@ -2,7 +2,7 @@ package com.dingzk.useradmin.mapper;
 
 import com.dingzk.useradmin.model.domain.User;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.dingzk.useradmin.model.vo.GroupUserVo;
+import com.dingzk.useradmin.model.vo.UserVo;
 
 /**
 * @author ding
@@ -12,5 +12,5 @@ import com.dingzk.useradmin.model.vo.GroupUserVo;
 */
 public interface UserMapper extends BaseMapper<User> {
 
-    GroupUserVo selectByUserId(Long userId);
+    UserVo selectByUserId(Long userId);
 }

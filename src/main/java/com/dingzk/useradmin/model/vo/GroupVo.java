@@ -35,7 +35,7 @@ public class GroupVo implements Serializable {
     /**
      * 队长
      */
-    private GroupUserVo leader;
+    private UserVo leader;
 
     /**
      * 圈子访问级别 0-公开 1-私有 2-加密
@@ -55,5 +55,5 @@ public class GroupVo implements Serializable {
     /**
      * 圈子成员（包含队长）
      */
-    private List<GroupUserVo> participants;
+    private List<UserVo> participants;
 }
