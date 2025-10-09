@@ -133,4 +133,12 @@ public class UserController {
 
         return ResponseEntity.success(userService.convertToUserVoList(users));
     }
+
+    @GetMapping("/match")
+    public ResponseEntity<List<UserVo>> getMatchUser(HttpServletRequest request) {
+        User loginUser = userService.getCurrentUser(request);
+
+        List<User> matchUsers = userService.getMatchUsers(loginUser);
+        return ResponseEntity.success(userService.convertToUserVoList(matchUsers));
+    }
 }

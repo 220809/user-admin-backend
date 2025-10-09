@@ -51,6 +51,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    private final Set<String> welcomedTagSet = Set.of("Java", "Python", "游戏");
+
+
     @Override
     public long userRegister(String userAccount, String password, String checkedPassword) {
         // 账户名，密码，确认密码不能为空
@@ -253,7 +256,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusinessException(ErrorCode.NULL_PARAM_ERROR);
         }
 
-        return searchUserByAndTags_usingPureSql(tagNameList);
+        List<String> fuzzyTagList = tagNameList.stream().map(SqlUtils::fullFuzzyValue).toList();
+        return userMapper.selectUsersByAndTags(fuzzyTagList);
     }
 
     /**
@@ -369,5 +373,96 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             log.error("Error creating key for recommend users: ", e);
         }
         return nonSensitiveUsers;
+    }
+
+    @Override
+    public List<User> getMatchUsers(User loginUser) {
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+
+        Gson gson = new Gson();
+        final Type type = new TypeToken<List<String>>() {
+        }.getType();
+        List<String> loginUserTagList = gson.fromJson(loginUser.getTags(), type);
+        if (CollectionUtils.isEmpty(loginUserTagList)) {
+            return null;
+        }
+
+        // 去重
+        Set<Long> userIdSet = new HashSet<>();
+        // userId->distance 按 distance 建立大根堆
+        PriorityQueue<Pair<Long, Integer>> priorityQueue = new PriorityQueue<>((p1, p2) -> p2.getValue() - p1.getValue());
+        for (String tag: loginUserTagList) {
+            // 获取当前用户标签，遍历用户标签
+            // 至少有一个标签与当前用户标签相同
+            // 自定义SQL，获取 id->(列名->列值map)
+            Map<Long, Map<String, Object>> idColumnValuesMap =
+                    userMapper.selectSimilarUserByTag(SqlUtils.fullFuzzyValue(tag));
+            // 遍历所有的 userId, tags 记录
+            for (Map<String, Object> userIdTagsRecord : idColumnValuesMap.values()) {
+                Long userId = (Long) userIdTagsRecord.get("user_id");
+                String tags = (String) userIdTagsRecord.get("tags");
+                List<String> userTagList = gson.fromJson(tags, type);
+                // 计算最小"编辑距离"，模拟相似度
+                int distance = AlgoUtils.minDistance(loginUserTagList, userTagList);
+                // 维持队列大小为5
+                if (priorityQueue.size() < 5) {
+                    // 排除当前用户与已加入堆的用户
+                    if (!userId.equals(loginUser.getUserId()) && !userIdSet.contains(userId)) {
+                        priorityQueue.add(Pair.of(userId, distance));
+                        userIdSet.add(userId);
+                    }
+                    continue;
+                }
+                // 队列大小 >= 5
+                if (priorityQueue.peek().getValue() > distance) {
+                    if (!userId.equals(loginUser.getUserId()) && !userIdSet.contains(userId)) {
+                        final Pair<Long, Integer> last = priorityQueue.poll();
+                        userIdSet.remove(last.getKey());
+                        priorityQueue.add(Pair.of(userId, distance));
+                        userIdSet.add(userId);
+                    }
+                }
+            }
+        }
+        // 走完以上流程，如果推荐用户数不足5个
+        // 按照预置的"热门"标签为用户推荐
+        Set<String> tagSet = new HashSet<>(welcomedTagSet);
+        loginUserTagList.forEach(tagSet::remove);
+        for (String tag: tagSet) {
+            Map<Long, Map<String, Object>> idColumnValuesMap =
+                    userMapper.selectSimilarUserByTag(SqlUtils.fullFuzzyValue(tag));
+            // 遍历所有的 userId, tags 记录
+            for (Map<String, Object> userIdTagsRecord : idColumnValuesMap.values()) {
+                Long userId = (Long) userIdTagsRecord.get("user_id");
+                // 维持队列大小为5
+                if (priorityQueue.size() < 5) {
+                    // 排除当前用户与已加入堆的用户
+                    if (!userId.equals(loginUser.getUserId()) && !userIdSet.contains(userId)) {
+                        priorityQueue.add(Pair.of(userId, Integer.MAX_VALUE));
+                        userIdSet.add(userId);
+                    }
+                } else {
+                    break;
+                }
+            }
+            if (priorityQueue.size() >= 5) {
+                break;
+            }
+        }
+
+        List<Long> userIdList = priorityQueue.stream().map(Pair::getKey).toList();
+        // 查找 Top id用户
+        final List<User> users = userMapper.selectByIds(userIdList);
+        final Map<Long, User> userMap = users.stream().collect(Collectors.toMap(User::getUserId, user -> user));
+        List<User> matchedUserList = new ArrayList<>();
+
+        // 出队顺序为分数由大到小
+        while (!priorityQueue.isEmpty()) {
+            matchedUserList.add(userMap.get(priorityQueue.poll().getKey()));
+        }
+        Collections.reverse(matchedUserList);
+        return matchedUserList;
     }
 }

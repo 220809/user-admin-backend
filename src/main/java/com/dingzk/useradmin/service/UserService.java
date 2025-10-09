@@ -114,4 +114,11 @@ public interface UserService extends IService<User> {
      * @return userList
      */
     List<User> getRecommendUsers(HttpServletRequest request);
+
+    /**
+     * 获取用户标签匹配的用户
+     * @param loginUser 登录用户
+     * @return 推荐用户
+     */
+    List<User> getMatchUsers(User loginUser);
 }

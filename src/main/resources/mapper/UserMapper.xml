@@ -42,6 +42,38 @@
         FROM user
         WHERE user_id = #{userId}
     </select>
+    
+    <select id="selectSimilarUserByTag" resultType="map">
+        SELECT user_id, tags
+        FROM user
+        WHERE tags != '[]' AND tags LIKE #{tag} AND deleted = 0;
+    </select>
+    
+    <select id="selectUsersByUserIds" resultMap="BaseResultMap">
+        SELECT
+        user_id AS userId,username,email,
+        user_account AS userAccount,password,avatar_url AS avatarUrl,
+        gender,slogan,status,
+        tags,created_at AS createdAt,updated_at AS updatedAt,
+        deleted,last_login_at AS lastLoginAt,user_role AS userRole
+        FROM user
+        WHERE user_id IN
+        <foreach collection="userIds" item="uid" open="(" separator="," close=")">
+            #{uid}
+        </foreach>
+    </select>
+
+    <select id="selectUsersByAndTags" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM user
+        WHERE user_id IN (
+            SELECT user_id FROM user
+                           WHERE deleted=0 AND
+            <foreach collection="tagList" item="tag" open="(" close=")" separator="AND">
+                tags LIKE #{tag}
+            </foreach>
+        )
+    </select>
 
     <sql id="Base_Column_List">
         user_id,username,email,
